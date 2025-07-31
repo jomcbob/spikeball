@@ -172,3 +172,22 @@ header {
   gap: 20px;
   font-size: x-large;
 }
+
+.flexRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.flexRow button {
+  height: fit-content;
+  aspect-ratio: 1;
+  background-color: black;
+  border: 2px solid yellow;
+  color: yellow;
+}
+
+.flexRow button:hover {
+  opacity: 1;
+  background-color: yellow;
+  color: black;
+}

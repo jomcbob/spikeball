@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { EditPlayerModal, Modal, Newnet } from "./models";
+import Header from "./header";
 
 let initialNets = [
   {
@@ -37,7 +39,7 @@ let initialNets = [
     users: [
       { id: 13, name: "Mia", score: 0 },
       { id: 14, name: "Nate", score: 0 },
-      { id: 15, name: "Olga", score: 0 },
+      { id: 15, name: "Bob", score: 0 },
       { id: 16, name: "Paul", score: 0 },
     ],
   },
@@ -50,7 +52,7 @@ function Player({ name, score, onClick }) {
       onClick={onClick}
     >
       {name} — {score}
-      
+
     </button>
   );
 }
@@ -59,10 +61,12 @@ function Player({ name, score, onClick }) {
 function Net({ id, name, users, onScoreChange, onRemove }) {
   return (
     <div className="net">
-      <h2 className="netNumber">
-        {name}
+      <div className="flexRow">
+        <h2 className="netNumber">
+          {name}
+        </h2>
         <button onClick={() => onRemove(id)} style={{ marginLeft: '10px' }}>✖</button>
-      </h2>
+      </div>
       <div className="displayFlex">
         {users.map((user) => (
           <Player
@@ -96,8 +100,6 @@ const reindexNetsAndUsers = (nets) => {
   });
 };
 
-
-
 function NetList({ nets, setNets, handlePlayerClick }) {
 
   const removeNet = (id) => {
@@ -105,9 +107,90 @@ function NetList({ nets, setNets, handlePlayerClick }) {
     const cleaned = reindexNetsAndUsers(filtered);
     setNets(cleaned);
   };
-  
+
+  return (
+    <>
+      {/* <button onClick={rotateUsers}>Rotate Users</button> */}
+      <div className="netBox">
+        {nets.map((net) => (
+          <Net
+            key={net.id}
+            id={net.id}
+            name={net.name}
+            users={net.users}
+            onScoreChange={handlePlayerClick}
+            onRemove={removeNet}
+          />
+
+        ))}
+      </div>
+    </>
+  );
+}
+
+export default function App() {
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState("Default Content");
+  const [nets, setNets] = useState(initialNets);
+
+  useEffect(() => {
+    console.log(nets)
+  }, [nets])
+
+  const handleAddNetClick = () => {
+    setModalOpen(true);
+    setModalContent(<Newnet nets={nets} setNets={setNets} setModalOpen={setModalOpen} />);
+  };
+
+  const handlePlayerClick = (playerId) => {
+    const player = nets.flatMap(net => net.users).find(user => user.id === playerId);
+    if (!player) return;
+
+    setModalContent(
+      <EditPlayerModal
+        player={player}
+        onSave={(updatedPlayer) => {
+          const updatedNets = nets.map(net => ({
+            ...net,
+            users: net.users.map(user =>
+              user.id === updatedPlayer.id ? updatedPlayer : user
+            ).sort((a, b) =>
+              b.wins - a.wins || b.score - a.score
+            ),
+          }));
+          setNets(updatedNets);
+        }}
+        onDelete={(idToDelete) => {
+          let allUsers = nets.flatMap(net => net.users);
+          allUsers = allUsers.filter(user => user.id !== idToDelete);
+
+          // Reindex IDs
+          allUsers = allUsers.map((user, index) => ({
+            ...user,
+            id: index + 1,
+          }));
+
+          const rebuiltNets = [];
+          for (let i = 0; i < allUsers.length; i += 4) {
+            const chunk = allUsers.slice(i, i + 4);
+            rebuiltNets.push({
+              id: rebuiltNets.length + 1,
+              name: `#${rebuiltNets.length + 1}`,
+              users: chunk.sort((a, b) => b.wins - a.wins || b.score - a.score),
+            });
+          }
+
+          setNets(rebuiltNets);
+        }}
+        onClose={() => setModalOpen(false)}
+      />
+    );
+    setModalOpen(true);
+  };
 
   const rotateUsers = () => {
+    console.log("rotateUsers called")
+
     const frozenTop = nets[0].users.slice(0, 2);
     const frozenBottom = nets[nets.length - 1].users.slice(2, 4);
 
@@ -135,257 +218,16 @@ function NetList({ nets, setNets, handlePlayerClick }) {
       ...net,
       users: rotatedUsers[i].sort((a, b) =>
         (b.wins || 0) - (a.wins || 0) || (b.score || 0) - (a.score || 0)
-      ),      
+      ),
     }));
 
     setNets(finalNets);
   }
 
-  return (
-    <>
-      <button onClick={rotateUsers}>Rotate Users</button>
-      <div className="netBox">
-        {nets.map((net) => (
-          <Net
-            key={net.id}
-            id={net.id}
-            name={net.name}
-            users={net.users}
-            onScoreChange={handlePlayerClick}
-            onRemove={removeNet}
-          />
-
-        ))}
-      </div>
-    </>
-  );
-}
-
-function Modal({ isOpen, onClose, children }) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="modalOverlay" onClick={onClose}>
-      <div className="modalContent" onClick={(e) => e.stopPropagation()}>
-        <button className="closeBtn" onClick={onClose}>✖</button>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Header({ onAddNetClick }) {
-  return (
-    <header>
-      <div className="name">Spikeball Scramble</div>
-      <div className="headerButtons">
-        <button onClick={onAddNetClick}>Add Net</button>
-        <button>Settings</button>
-      </div>
-    </header>
-  );
-}
-
-const addNet = (nets, setNets, playerOne, playerTwo, playerThree, playerFour) => {
-  const newId = nets.length + 1;
-  const baseId = nets.length * 4 + 1;
-
-  const newNet = {
-    id: newId,
-    name: `#${newId}`,
-    users: [
-      { id: baseId, name: playerOne, score: 0 },
-      { id: baseId + 1, name: playerTwo, score: 0 },
-      { id: baseId + 2, name: playerThree, score: 0 },
-      { id: baseId + 3, name: playerFour, score: 0 },
-    ],
-  };
-
-  setNets([...nets, newNet]);
-};
-
-const Newnet = ({ nets, setNets, setModalOpen }) => {
-  const [playerOne, setPlayerOne] = useState("");
-  const [playerTwo, setPlayerTwo] = useState("");
-  const [playerThree, setPlayerThree] = useState("");
-  const [playerFour, setPlayerFour] = useState("");
-
-  return (
-    <div className="newNet">
-      <input type="text" placeholder="player one" value={playerOne} onChange={(e) => setPlayerOne(e.target.value)} />
-      <input type="text" placeholder="player two" value={playerTwo} onChange={(e) => setPlayerTwo(e.target.value)} />
-      <input type="text" placeholder="player three" value={playerThree} onChange={(e) => setPlayerThree(e.target.value)} />
-      <input type="text" placeholder="player four" value={playerFour} onChange={(e) => setPlayerFour(e.target.value)} />
-      <button
-        onClick={() => {
-          addNet(nets, setNets, playerOne, playerTwo, playerThree, playerFour);
-          setModalOpen(false);
-        }}
-      >
-        Add Net
-      </button>
-    </div>
-  );
-};
-
-function EditPlayerModal({ player, onSave, onDelete, onClose }) {
-  const [name, setName] = useState(player.name);
-  const [games, setGames] = useState(player.games || [
-    { result: "notPlayed", score: 0 },
-    { result: "notPlayed", score: 0 },
-    { result: "notPlayed", score: 0 },
-  ]);
-
-  const handleGameChange = (index, field, value) => {
-    const updatedGames = [...games];
-    updatedGames[index] = {
-      ...updatedGames[index],
-      [field]: field === "score" ? parseInt(value, 10) || 0 : value,
-    };
-    setGames(updatedGames);
-  };
-
-  const totalWins = games.filter(g => g.result === "win").length;
-  const totalScore = games
-    .filter(g => g.result !== "notPlayed")
-    .reduce((sum, g) => sum + (parseInt(g.score) || 0), 0);
-
-  return (
-    <div className="editPlayerModal">
-      <h2>{name}</h2>
-
-      <label>
-        Name:
-        <input value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
-
-      {games.map((game, index) => (
-        <div key={index} style={{ marginTop: "10px" }}>
-          <label>
-            Game {index + 1} Result:
-            <select
-              value={game.result}
-              onChange={(e) => handleGameChange(index, "result", e.target.value)}
-            >
-              <option value="notPlayed">Not Played</option>
-              <option value="win">Win</option>
-              <option value="loss">Loss</option>
-            </select>
-          </label>
-          <label>
-            Score:
-            <input
-              type="number"
-              value={game.score}
-              onChange={(e) => handleGameChange(index, "score", e.target.value)}
-              disabled={game.result === "notPlayed"}
-            />
-          </label>
-        </div>
-      ))}
-
-      <p style={{ marginTop: "10px" }}>
-        Wins: {totalWins} — Total Score: {totalScore}
-      </p>
-
-      <button
-        onClick={() => {
-          onSave({
-            ...player,
-            name,
-            score: totalScore,
-            wins: totalWins,
-            games,
-          });
-          onClose();
-        }}
-      >
-        Save
-      </button>
-
-      <button
-        onClick={() => {
-          onDelete(player.id);
-          onClose();
-        }}
-      >
-        Delete
-      </button>
-    </div>
-  );
-}
-
-
-
-
-export default function App() {
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState("Default Content");
-  const [nets, setNets] = useState(initialNets);
-
-  useEffect(() => {
-    console.log(nets)
-  }, [nets])
-
-  const handleAddNetClick = () => {
-    setModalOpen(true);
-    setModalContent(<Newnet nets={nets} setNets={setNets} setModalOpen={setModalOpen} />);
-  };
-  
-  const handlePlayerClick = (playerId) => {
-    const player = nets.flatMap(net => net.users).find(user => user.id === playerId);
-    if (!player) return;
-  
-    setModalContent(
-      <EditPlayerModal
-        player={player}
-        onSave={(updatedPlayer) => {
-          const updatedNets = nets.map(net => ({
-            ...net,
-            users: net.users.map(user =>
-              user.id === updatedPlayer.id ? updatedPlayer : user
-            ).sort((a, b) =>
-              b.wins - a.wins || b.score - a.score
-            ),            
-          }));
-          setNets(updatedNets);
-        }}
-        onDelete={(idToDelete) => {
-          let allUsers = nets.flatMap(net => net.users);
-          allUsers = allUsers.filter(user => user.id !== idToDelete);
-  
-          // Reindex IDs
-          allUsers = allUsers.map((user, index) => ({
-            ...user,
-            id: index + 1,
-          }));
-  
-          const rebuiltNets = [];
-          for (let i = 0; i < allUsers.length; i += 4) {
-            const chunk = allUsers.slice(i, i + 4);
-            rebuiltNets.push({
-              id: rebuiltNets.length + 1,
-              name: `#${rebuiltNets.length + 1}`,
-              users: chunk.sort((a, b) => b.wins - a.wins || b.score - a.score),
-            });
-          }
-  
-          setNets(rebuiltNets);
-        }}
-        onClose={() => setModalOpen(false)}
-      />
-    );
-    setModalOpen(true);
-  };
-  
-  
-  
-  
-  
 
   return (
     <div className="container">
-      <Header onAddNetClick={handleAddNetClick} />
+      <Header rotateUsers={rotateUsers} onAddNetClick={handleAddNetClick} />
       <NetList nets={nets} setNets={setNets} handlePlayerClick={handlePlayerClick} />
       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
         {modalContent}
