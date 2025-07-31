@@ -7,51 +7,50 @@ let initialNets = [
     id: 1,
     name: "#1",
     users: [
-      { id: 1, name: "Alice", score: 0 },
-      { id: 2, name: "Ben", score: 0 },
-      { id: 3, name: "Cleo", score: 0 },
-      { id: 4, name: "Dan", score: 0 },
+      { id: 1, name: "Alice", score: 0, wins: 0 },
+      { id: 2, name: "Ben", score: 0, wins: 0 },
+      { id: 3, name: "Cleo", score: 0, wins: 0 },
+      { id: 4, name: "Dan", score: 0, wins: 0 },
     ],
   },
   {
     id: 2,
     name: "#2",
     users: [
-      { id: 5, name: "Eva", score: 0 },
-      { id: 6, name: "Finn", score: 0 },
-      { id: 7, name: "Gina", score: 0 },
-      { id: 8, name: "Hank", score: 0 },
+      { id: 5, name: "Eva", score: 0, wins: 0 },
+      { id: 6, name: "Finn", score: 0, wins: 0 },
+      { id: 7, name: "Gina", score: 0, wins: 0 },
+      { id: 8, name: "Hank", score: 0, wins: 0 },
     ],
   },
   {
     id: 3,
     name: "#3",
     users: [
-      { id: 9, name: "Ivy", score: 0 },
-      { id: 10, name: "Jack", score: 0 },
-      { id: 11, name: "Kara", score: 0 },
-      { id: 12, name: "Leo", score: 0 },
+      { id: 9, name: "Ivy", score: 0, wins: 0 },
+      { id: 10, name: "Jack", score: 0, wins: 0 },
+      { id: 11, name: "Kara", score: 0, wins: 0 },
+      { id: 12, name: "Leo", score: 0, wins: 0 },
     ],
   },
   {
     id: 4,
     name: "#4",
     users: [
-      { id: 13, name: "Mia", score: 0 },
-      { id: 14, name: "Nate", score: 0 },
-      { id: 15, name: "Bob", score: 0 },
-      { id: 16, name: "Paul", score: 0 },
+      { id: 13, name: "Mia", score: 0, wins: 0 },
+      { id: 14, name: "Nate", score: 0, wins: 0 },
+      { id: 15, name: "Bob", score: 0, wins: 0 },
+      { id: 16, name: "Paul", score: 0, wins: 0 },
     ],
   },
 ];
 
-function Player({ name, score, onClick }) {
+function Player({ name, score, onClick, wins }) {
   return (
     <button
-      className="px-4 py-2 bg-white border rounded w-full text-left"
       onClick={onClick}
     >
-      {name} — {score}
+      {name} - {wins} - {score}
 
     </button>
   );
@@ -73,6 +72,7 @@ function Net({ id, name, users, onScoreChange, onRemove }) {
             key={user.id}
             name={user.name}
             score={user.score}
+            wins={user.wins}
             onClick={() => onScoreChange(user.id)}
           />
         ))}
@@ -110,7 +110,6 @@ function NetList({ nets, setNets, handlePlayerClick }) {
 
   return (
     <>
-      {/* <button onClick={rotateUsers}>Rotate Users</button> */}
       <div className="netBox">
         {nets.map((net) => (
           <Net
@@ -164,7 +163,6 @@ export default function App() {
           let allUsers = nets.flatMap(net => net.users);
           allUsers = allUsers.filter(user => user.id !== idToDelete);
 
-          // Reindex IDs
           allUsers = allUsers.map((user, index) => ({
             ...user,
             id: index + 1,
@@ -189,40 +187,50 @@ export default function App() {
   };
 
   const rotateUsers = () => {
-    console.log("rotateUsers called")
-
+    console.log("rotateUsers called");
+  
     const frozenTop = nets[0].users.slice(0, 2);
     const frozenBottom = nets[nets.length - 1].users.slice(2, 4);
-
+  
     const newNets = nets.map((net) => ({ ...net, users: [...net.users] }));
     const rotatedUsers = nets.map((net) => [...net.users]);
-
+  
     for (let i = 0; i < nets.length; i++) {
       const current = nets[i].users;
-
+  
       if (i > 0) {
         const topTwo = current.slice(0, 2);
         rotatedUsers[i - 1].splice(2, 2, ...topTwo);
       }
-
+  
       if (i < nets.length - 1) {
         const bottomTwo = current.slice(2, 4);
         rotatedUsers[i + 1].splice(0, 2, ...bottomTwo);
       }
     }
-
+  
     rotatedUsers[0].splice(0, 2, ...frozenTop);
     rotatedUsers[nets.length - 1].splice(2, 2, ...frozenBottom);
-
+  
     const finalNets = newNets.map((net, i) => ({
       ...net,
-      users: rotatedUsers[i].sort((a, b) =>
-        (b.wins || 0) - (a.wins || 0) || (b.score || 0) - (a.score || 0)
-      ),
+      users: rotatedUsers[i]
+        .sort((a, b) => (b.wins || 0) - (a.wins || 0) || (b.score || 0) - (a.score || 0))
+        .map(user => ({
+          ...user,
+          wins: 0,
+          score: 0,
+          games: [
+            { result: "notPlayed", score: 0 },
+            { result: "notPlayed", score: 0 },
+            { result: "notPlayed", score: 0 },
+          ],
+        })),
     }));
-
+  
     setNets(finalNets);
-  }
+  };
+  
 
 
   return (
