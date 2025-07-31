@@ -1,0 +1,167 @@
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: grey;
+}
+
+.container {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  overflow-y: auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+h1 {
+  margin: 0;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  background-color: rgb(4, 4, 4);
+  color: yellow;
+  width: 100vw;
+  justify-content: space-between;
+  padding: 20px 10px;
+  font-size: xx-large;
+
+  position: sticky;
+  top: 0;
+}
+
+.headerButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.headerButtons button {
+  background-color: black;
+  border: 2px solid yellow;
+  color: yellow;
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: large;
+  align-self: center;
+  white-space: nowrap;
+}
+
+.headerButtons button:hover {
+  color: black;
+  background-color: yellow;
+  cursor: pointer;
+}
+
+.net {
+  border: 5px solid black;
+  border-radius: 15px;
+  padding: 20px;
+  height: fit-content;
+}
+
+.net button {
+  background-color: lightyellow;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: large;
+  border: 2px solid black;
+}
+
+.net button:hover {
+  opacity: 0.7;
+}
+
+.displayFlex {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.netBox {
+  width: 100vw;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 300px);
+  gap: 10px;
+  justify-content: center;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: rgb(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalContent {
+  background-color: gray;
+  padding: 20px;
+  border-radius: 20px;
+  font-size: x-large;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.modalContent > button {
+  width: fit-content;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  padding: 5px;
+  border: 2px solid yellow;
+  background-color: black;
+  color: yellow;
+  margin-bottom: 20px;
+}
+
+.modalContent button:hover {
+  background-color: yellow;
+  color: black;
+}
+
+.newNet {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+}
+
+.newNet button {
+  margin-top: 20px;
+  width: fit-content;
+  border: 2px solid yellow;
+  background-color: black;
+  color: yellow;
+  border-radius: 20px;
+  font-size: large;
+  padding: 5px 10px;
+}
+
+.newNet input {
+  border-radius: 20px;
+  border: 1px solid black;
+  font-size: x-large;
+  text-align: center;
+}
