@@ -21,6 +21,7 @@ html, body {
   overflow-y: auto;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 40px;
 }
 
 h1 {
