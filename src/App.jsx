@@ -133,28 +133,13 @@ function NetList({ nets, setNets, handlePlayerClick }) {
 
     const finalNets = newNets.map((net, i) => ({
       ...net,
-      users: rotatedUsers[i].sort((a, b) => (b.score || 0) - (a.score || 0)),
+      users: rotatedUsers[i].sort((a, b) =>
+        (b.wins || 0) - (a.wins || 0) || (b.score || 0) - (a.score || 0)
+      ),      
     }));
 
     setNets(finalNets);
-  };
-
-
-  const handleScoreChange = (playerId) => {
-    const updatedNets = nets.map((net) => {
-      const users = net.users.map((user) => {
-        if (user.id === playerId) {
-          const newScore = parseInt(prompt(`Enter score for ${user.name}:`, user.score), 10);
-          return { ...user, score: isNaN(newScore) ? user.score : newScore };
-        }
-        return user;
-      });
-
-      return { ...net, users: users.sort((a, b) => b.score - a.score) };
-    });
-
-    setNets(updatedNets);
-  };
+  }
 
   return (
     <>
@@ -245,33 +230,80 @@ const Newnet = ({ nets, setNets, setModalOpen }) => {
 
 function EditPlayerModal({ player, onSave, onDelete, onClose }) {
   const [name, setName] = useState(player.name);
-  const [score, setScore] = useState(player.score);
+  const [games, setGames] = useState(player.games || [
+    { result: "notPlayed", score: 0 },
+    { result: "notPlayed", score: 0 },
+    { result: "notPlayed", score: 0 },
+  ]);
+
+  const handleGameChange = (index, field, value) => {
+    const updatedGames = [...games];
+    updatedGames[index] = {
+      ...updatedGames[index],
+      [field]: field === "score" ? parseInt(value, 10) || 0 : value,
+    };
+    setGames(updatedGames);
+  };
+
+  const totalWins = games.filter(g => g.result === "win").length;
+  const totalScore = games
+    .filter(g => g.result !== "notPlayed")
+    .reduce((sum, g) => sum + (parseInt(g.score) || 0), 0);
 
   return (
     <div className="editPlayerModal">
-      <h2>Edit Player</h2>
+      <h2>{name}</h2>
+
       <label>
         Name:
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </label>
-      <label>
-        Score:
-        <input
-          type="number"
-          value={score}
-          onChange={(e) => setScore(parseInt(e.target.value, 10))}
-        />
-      </label>
+
+      {games.map((game, index) => (
+        <div key={index} style={{ marginTop: "10px" }}>
+          <label>
+            Game {index + 1} Result:
+            <select
+              value={game.result}
+              onChange={(e) => handleGameChange(index, "result", e.target.value)}
+            >
+              <option value="notPlayed">Not Played</option>
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+            </select>
+          </label>
+          <label>
+            Score:
+            <input
+              type="number"
+              value={game.score}
+              onChange={(e) => handleGameChange(index, "score", e.target.value)}
+              disabled={game.result === "notPlayed"}
+            />
+          </label>
+        </div>
+      ))}
+
+      <p style={{ marginTop: "10px" }}>
+        Wins: {totalWins} — Total Score: {totalScore}
+      </p>
+
       <button
         onClick={() => {
-          onSave({ ...player, name, score });
+          onSave({
+            ...player,
+            name,
+            score: totalScore,
+            wins: totalWins,
+            games,
+          });
           onClose();
         }}
       >
         Save
       </button>
+
       <button
-        style={{ marginLeft: "10px", backgroundColor: "red", color: "white" }}
         onClick={() => {
           onDelete(player.id);
           onClose();
@@ -282,6 +314,7 @@ function EditPlayerModal({ player, onSave, onDelete, onClose }) {
     </div>
   );
 }
+
 
 
 
@@ -307,22 +340,21 @@ export default function App() {
       <EditPlayerModal
         player={player}
         onSave={(updatedPlayer) => {
-          const updatedNets = nets.map(net => {
-            const updatedUsers = net.users.map(user =>
+          const updatedNets = nets.map(net => ({
+            ...net,
+            users: net.users.map(user =>
               user.id === updatedPlayer.id ? updatedPlayer : user
-            );
-  
-            return {
-              ...net,
-              users: updatedUsers.sort((a, b) => b.score - a.score),
-            };
-          });
-  
+            ).sort((a, b) =>
+              b.wins - a.wins || b.score - a.score
+            ),            
+          }));
           setNets(updatedNets);
         }}
         onDelete={(idToDelete) => {
-          let allUsers = nets.flatMap(net => net.users).filter(user => user.id !== idToDelete);
+          let allUsers = nets.flatMap(net => net.users);
+          allUsers = allUsers.filter(user => user.id !== idToDelete);
   
+          // Reindex IDs
           allUsers = allUsers.map((user, index) => ({
             ...user,
             id: index + 1,
@@ -330,11 +362,11 @@ export default function App() {
   
           const rebuiltNets = [];
           for (let i = 0; i < allUsers.length; i += 4) {
-            const usersChunk = allUsers.slice(i, i + 4).sort((a, b) => b.score - a.score);
+            const chunk = allUsers.slice(i, i + 4);
             rebuiltNets.push({
               id: rebuiltNets.length + 1,
               name: `#${rebuiltNets.length + 1}`,
-              users: usersChunk,
+              users: chunk.sort((a, b) => b.wins - a.wins || b.score - a.score),
             });
           }
   
@@ -343,9 +375,10 @@ export default function App() {
         onClose={() => setModalOpen(false)}
       />
     );
-  
     setModalOpen(true);
   };
+  
+  
   
   
   

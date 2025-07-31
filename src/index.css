@@ -165,3 +165,10 @@ header {
   font-size: x-large;
   text-align: center;
 }
+
+.editPlayerModal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-size: x-large;
+}
