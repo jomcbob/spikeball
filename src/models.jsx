@@ -1,12 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 function EditPlayerModal({ player, onSave, onDelete, onClose }) {
+  const nameRef = useRef(null);
   const [name, setName] = useState(player.name);
   const [games, setGames] = useState(player.games || [
     { result: "notPlayed", score: 0 },
     { result: "notPlayed", score: 0 },
     { result: "notPlayed", score: 0 },
   ]);
+
+  if (!nameRef.current && name) {
+    nameRef.current = name;
+  }
 
   const handleGameChange = (index, field, value) => {
     const updatedGames = [...games];
@@ -24,7 +29,7 @@ function EditPlayerModal({ player, onSave, onDelete, onClose }) {
 
   return (
     <div className="editPlayerModal">
-      <h2>{name}</h2>
+      <h2>{nameRef.current}</h2>
 
       <label>
         Name:
@@ -32,7 +37,8 @@ function EditPlayerModal({ player, onSave, onDelete, onClose }) {
       </label>
 
       {games.map((game, index) => (
-        <div key={index} style={{ marginTop: "10px" }}>
+        <div key={index}>
+          <div className="playerStats">
           <label>
             Game {index + 1} Result:
             <select
@@ -51,8 +57,12 @@ function EditPlayerModal({ player, onSave, onDelete, onClose }) {
               value={game.score}
               onChange={(e) => handleGameChange(index, "score", e.target.value)}
               disabled={game.result === "notPlayed"}
+              style={{
+                backgroundColor: game.result === "notPlayed" ? "lightgray" : "lightyellow"
+              }}
             />
           </label>
+          </div>
         </div>
       ))}
 
@@ -60,29 +70,32 @@ function EditPlayerModal({ player, onSave, onDelete, onClose }) {
         Wins: {totalWins} — Total Score: {totalScore}
       </p>
 
+      <div className="editPlayerButtons">
       <button
-        onClick={() => {
-          onSave({
-            ...player,
-            name,
-            score: totalScore,
-            wins: totalWins,
-            games,
-          });
-          onClose();
-        }}
-      >
-        Save
-      </button>
-
-      <button
-        onClick={() => {
-          onDelete(player.id);
-          onClose();
-        }}
-      >
-        Delete {name}
-      </button>
+          className="deleteButton"
+          onClick={() => {
+            onDelete(player.id);
+            onClose();
+          }}
+        >
+          Delete {nameRef.current}
+        </button>
+        
+        <button
+          onClick={() => {
+            onSave({
+              ...player,
+              name,
+              score: totalScore,
+              wins: totalWins,
+              games,
+            });
+            onClose();
+          }}
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 }
@@ -106,12 +119,12 @@ const addNet = (nets, setNets, playerOne, playerTwo, playerThree, playerFour) =>
 
   const newNet = {
     id: newId,
-    name: `#${newId}`,
+    name: `Net #${newId}`,
     users: [
-      { id: baseId, name: playerOne, score: 0 },
-      { id: baseId + 1, name: playerTwo, score: 0 },
-      { id: baseId + 2, name: playerThree, score: 0 },
-      { id: baseId + 3, name: playerFour, score: 0 },
+      { id: baseId, name: playerOne, score: 0, wins: 0 },
+      { id: baseId + 1, name: playerTwo, score: 0, wins: 0 },
+      { id: baseId + 2, name: playerThree, score: 0, wins: 0 },
+      { id: baseId + 3, name: playerFour, score: 0, wins: 0 },
     ],
   };
 

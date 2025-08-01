@@ -5,7 +5,7 @@ import Header from "./header";
 let initialNets = [
   {
     id: 1,
-    name: "#1",
+    name: "Net #1",
     users: [
       { id: 1, name: "Alice", score: 0, wins: 0 },
       { id: 2, name: "Ben", score: 0, wins: 0 },
@@ -15,7 +15,7 @@ let initialNets = [
   },
   {
     id: 2,
-    name: "#2",
+    name: "Net #2",
     users: [
       { id: 5, name: "Eva", score: 0, wins: 0 },
       { id: 6, name: "Finn", score: 0, wins: 0 },
@@ -25,7 +25,7 @@ let initialNets = [
   },
   {
     id: 3,
-    name: "#3",
+    name: "Net #3",
     users: [
       { id: 9, name: "Ivy", score: 0, wins: 0 },
       { id: 10, name: "Jack", score: 0, wins: 0 },
@@ -35,7 +35,7 @@ let initialNets = [
   },
   {
     id: 4,
-    name: "#4",
+    name: "Net #4",
     users: [
       { id: 13, name: "Mia", score: 0, wins: 0 },
       { id: 14, name: "Nate", score: 0, wins: 0 },
@@ -55,7 +55,6 @@ function Player({ name, score, onClick, wins }) {
     </button>
   );
 }
-
 
 function Net({ id, name, users, onScoreChange, onRemove }) {
   return (
@@ -94,7 +93,7 @@ const reindexNetsAndUsers = (nets) => {
     return {
       ...net,
       id: newNetId,
-      name: `#${newNetId}`,
+      name: `Net #${newNetId}`,
       users: updatedUsers,
     };
   });
@@ -173,7 +172,7 @@ export default function App() {
             const chunk = allUsers.slice(i, i + 4);
             rebuiltNets.push({
               id: rebuiltNets.length + 1,
-              name: `#${rebuiltNets.length + 1}`,
+              name: `Net #${rebuiltNets.length + 1}`,
               users: chunk.sort((a, b) => b.wins - a.wins || b.score - a.score),
             });
           }
@@ -187,7 +186,6 @@ export default function App() {
   };
 
   const rotateUsers = () => {
-    console.log("rotateUsers called");
   
     const frozenTop = nets[0].users.slice(0, 2);
     const frozenBottom = nets[nets.length - 1].users.slice(2, 4);
@@ -231,8 +229,6 @@ export default function App() {
     setNets(finalNets);
   };
   
-
-
   return (
     <div className="container">
       <Header rotateUsers={rotateUsers} onAddNetClick={handleAddNetClick} />
