@@ -122,6 +122,8 @@ header {
   justify-content: center;
   align-items: center;
   z-index: 100;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .modalContent {
@@ -257,4 +259,10 @@ header {
 label {
   display: flex;
   flex-direction: column;
+}
+
+@media screen and (max-width: 500px) {
+  .modalOverlay {
+    align-items: start;
+  }
 }
